@@ -27,7 +27,7 @@ if [ "$?" != "0" ]; then
 fi
 
 info "Downloading Image"
-fetch_url "$rootfs" "$download_tmpfs"
+fetch_url "$rootfs" "$download_tmpfs/$rootfs_filename"
 if [ "$?" != "0" ]; then
   die "Failed to download image"
   exit 1

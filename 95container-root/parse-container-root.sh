@@ -5,6 +5,7 @@
 [ -z "$root" ] && root=$(getarg root=)
 
 modprobe -q loop
+rootok=1
 
 # make sure that init doesn't complain
 [ -z "$root" ] && root="tmpfs"
