@@ -27,4 +27,31 @@ sudo dracut -v -a container-root --uefi --early-microcode --no-hostonly --enhanc
 
 ```
 
-This will download the container rootfs, however since it doesn't have the kernel modules it will not full boot, it does pivot though. So we'll need to give that a little more love, but that's for future me to worry about.
+This will download the container rootfs, however since it doesn't have the kernel modules it will not full boot, it does pivot though. So we'll need to give that a little more love.
+
+---
+
+## A little more love
+
+So let's create a quick _bootable_ container.
+
+```shell
+sudo dracut -v -a container-root --uefi --early-microcode --no-hostonly --enhanced-cpio --kernel-cmdline 'rd.shell=1 ip=dhcp rd.neednet=1 rd.tmpfs.size=6G selinux=0 rd.container.rootfs=http://10.10.10.10:8000/rootfs_custom.tar.xz -f ~/test.efi
+```
+
+That will make the efi file, now let's grab the files, build the tar file, and serve the file via http
+
+```shell
+cd $HOME/Public
+aria2c https://jenkins.linuxcontainers.org/view/Images/job/image-fedora/architecture=amd64,release=39,variant=default/lastSuccessfulBuild/artifact/rootfs.tar.xz
+sudo mkdir rootfs
+sudo tar axpf rootfs.tar.xz -C rootfs/
+sudo dnf --installroot=$HOME/Public/rootfs install kernel-modules kernel-modules-extra cloud-init -y
+cd rootfs
+sudo tar acpf ../rootfs_custom.tar.xz .
+cd ..
+sudo chmod a+r *.xz
+python -m http.server
+```
+
+This will allow your container to boot, paired this with cloud-init this will get you a completely bootable cloud-init enabled lxc container running in memory on bare metal
